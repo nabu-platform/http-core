@@ -14,7 +14,7 @@ import be.nabu.libs.http.HTTPException;
 import be.nabu.libs.http.api.HTTPEntity;
 import be.nabu.libs.http.api.HTTPRequest;
 import be.nabu.libs.http.api.HTTPResponse;
-import be.nabu.libs.http.api.client.AuthenticationHandler;
+import be.nabu.libs.http.api.client.ClientAuthenticationHandler;
 import be.nabu.libs.http.api.server.AuthenticationHeader;
 import be.nabu.libs.http.api.server.CustomHeader;
 import be.nabu.libs.http.api.server.SecurityHeader;
@@ -125,7 +125,7 @@ public class HTTPUtils {
 		return newRequest;
 	}
 	
-	public static Header authenticateServer(HTTPResponse response, Principal principal, AuthenticationHandler authenticationHandler) {
+	public static Header authenticateServer(HTTPResponse response, Principal principal, ClientAuthenticationHandler authenticationHandler) {
 		if (authenticationHandler != null) {
 			for (Header wwwAuthenticateHeader : MimeUtils.getHeaders(SERVER_AUTHENTICATE_REQUEST, response.getContent().getHeaders())) {
 				if (wwwAuthenticateHeader != null) {
@@ -138,7 +138,7 @@ public class HTTPUtils {
 		return null;
 	}
 	
-	public static Header authenticateProxy(HTTPResponse response, Principal principal, AuthenticationHandler authenticationHandler) {
+	public static Header authenticateProxy(HTTPResponse response, Principal principal, ClientAuthenticationHandler authenticationHandler) {
 		if (authenticationHandler != null) {
 			for (Header proxyAuthenticateHeader : MimeUtils.getHeaders(PROXY_AUTHENTICATE_REQUEST, response.getContent().getHeaders())) {
 				if (proxyAuthenticateHeader != null) {
