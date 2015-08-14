@@ -25,8 +25,11 @@ import be.nabu.utils.io.IOUtils;
 import be.nabu.utils.io.api.ByteBuffer;
 import be.nabu.utils.io.api.LimitedReadableContainer;
 import be.nabu.utils.io.api.ReadableContainer;
+import be.nabu.utils.mime.api.ContentPart;
 import be.nabu.utils.mime.api.Header;
 import be.nabu.utils.mime.api.ModifiablePart;
+import be.nabu.utils.mime.api.MultiPart;
+import be.nabu.utils.mime.api.Part;
 import be.nabu.utils.mime.impl.FormatException;
 import be.nabu.utils.mime.impl.MimeHeader;
 import be.nabu.utils.mime.impl.MimeUtils;
@@ -228,5 +231,46 @@ public class HTTPUtils {
 			}
 		}
 		return result;
+	}
+	
+	public static List<String> getAcceptedContentTypes(Header...headers) {
+		List<String> list = new ArrayList<String>();
+		Header acceptHeader = MimeUtils.getHeader("Accept", headers);
+		if (acceptHeader != null) {
+			list.addAll(Arrays.asList(acceptHeader.getValue().split("[\\s]*,[\\s]*")));
+		}
+		return list;
+	}
+	
+	/**
+	 * Described in: https://www.ietf.org/rfc/rfc2388.txt
+	 * Example: http://stackoverflow.com/questions/4526273/what-does-enctype-multipart-form-data-mean
+	 * Important: there is no support yet for multipart/mixed, this "should" be if multiple files are selected for one file input, not for multiple file inputs
+	 */
+	public static Map<String, List<ContentPart>> getMultipartFormData(HTTPEntity entity) {
+		Map<String, List<ContentPart>> formData = new HashMap<String, List<ContentPart>>();
+		// check if we are indeed dealing with a multipart form data
+		if (entity.getContent() instanceof MultiPart && "multipart/form-data".equals(MimeUtils.getContentType(entity.getContent().getHeaders()))) {
+			// basically each part in the multipart is a value
+			// the "files" (the reason you usually go multipart) should have a file name in the content disposition
+			// the content-disposition itself is set to "form-data"
+			// the files should also have a content type set
+			for (Part part : (MultiPart) entity.getContent()) {
+				if (part instanceof ContentPart) {
+					Map<String, String> header = MimeUtils.getHeaderAsValues("Content-Disposition", part.getHeaders());
+					if (header != null && "form-data".equals(header.get("value"))) {
+						String name = header.get("name");
+						if (!formData.containsKey(name)) {
+							formData.put(name, new ArrayList<ContentPart>());
+						}
+						formData.get(name).add((ContentPart) part);
+					}
+				}
+				else {
+					throw new IllegalArgumentException("Nested multiparts are not yet supported");
+				}
+			}
+		}
+		return formData;
 	}
 }
