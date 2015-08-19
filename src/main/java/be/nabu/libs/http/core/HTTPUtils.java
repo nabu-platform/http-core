@@ -95,7 +95,7 @@ public class HTTPUtils {
 			}
 			allHeaders.add(new MimeHeader("Content-Length", new Long(size).toString()));
 		}
-		if (MimeUtils.getHeader("Content-Type", headers) == null) {
+		if (MimeUtils.getHeader("Content-Type", headers) == null && contentType != null) {
 			allHeaders.add(new MimeHeader("Content-Type", contentType));
 		}
 		return new DefaultHTTPResponse(200, "OK", new PlainMimeContentPart(null, content, allHeaders.toArray(new Header[0])));
