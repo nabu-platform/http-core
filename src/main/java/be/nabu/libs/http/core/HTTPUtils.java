@@ -4,11 +4,16 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.security.Principal;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.TimeZone;
 
 import be.nabu.libs.http.HTTPException;
 import be.nabu.libs.http.api.HTTPEntity;
@@ -272,5 +277,29 @@ public class HTTPUtils {
 			}
 		}
 		return formData;
+	}
+	
+	public static Date getIfModifiedSince(Header...headers) throws ParseException {
+		Header header = MimeUtils.getHeader("If-Modified-Since", headers);
+		return header == null ? null : parseDate(header.getValue());
+	}
+	
+	public static Date parseDate(String value) throws ParseException {
+		return value == null ? null : getDateFormatter().parse(value);
+	}
+	
+	public static String formatDate(Date date) {
+		return date == null ? null : getDateFormatter().format(date);
+	}
+	
+	private static ThreadLocal<SimpleDateFormat> dateParser = new ThreadLocal<SimpleDateFormat>();
+	
+	private static SimpleDateFormat getDateFormatter() {
+		if (dateParser.get() == null) {
+			SimpleDateFormat simpleDateFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz", Locale.US);
+			simpleDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+			dateParser.set(simpleDateFormat);
+		}
+		return dateParser.get();
 	}
 }
