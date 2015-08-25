@@ -67,9 +67,11 @@ public class HTTPUtils {
 	}
 	
 	public static HTTPResponse newResponse(ReadableResource resource, Header...headers) throws IOException {
-		return resource instanceof FiniteResource 
-			? newResponse(resource.getContentType(), new ResourceReadableContainer(resource), new MimeHeader("Content-Length", new Long(((FiniteResource) resource).getSize()).toString()))
-			: newResponse(resource.getContentType(), new ResourceReadableContainer(resource));
+		HTTPResponse newResponse = newResponse(resource.getContentType(), new ResourceReadableContainer(resource), headers);
+		if (resource instanceof FiniteResource && MimeUtils.getHeader("Content-Length", newResponse.getContent().getHeaders()) == null) {
+			newResponse.getContent().setHeader(new MimeHeader("Content-Length", new Long(((FiniteResource) resource).getSize()).toString()));
+		}
+		return newResponse;
 	}
 	
 	public static HTTPResponse newEmptyResponse(Header...headers) {
