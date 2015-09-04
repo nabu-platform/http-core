@@ -240,15 +240,6 @@ public class HTTPUtils {
 		return result;
 	}
 	
-	public static List<String> getAcceptedContentTypes(Header...headers) {
-		List<String> list = new ArrayList<String>();
-		Header acceptHeader = MimeUtils.getHeader("Accept", headers);
-		if (acceptHeader != null) {
-			list.addAll(Arrays.asList(acceptHeader.getValue().split("[\\s]*,[\\s]*")));
-		}
-		return list;
-	}
-	
 	/**
 	 * Described in: https://www.ietf.org/rfc/rfc2388.txt
 	 * Example: http://stackoverflow.com/questions/4526273/what-does-enctype-multipart-form-data-mean
