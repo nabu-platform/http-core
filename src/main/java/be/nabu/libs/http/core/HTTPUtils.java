@@ -32,6 +32,7 @@ import be.nabu.utils.io.api.LimitedReadableContainer;
 import be.nabu.utils.io.api.ReadableContainer;
 import be.nabu.utils.mime.api.ContentPart;
 import be.nabu.utils.mime.api.Header;
+import be.nabu.utils.mime.api.ModifiableHeader;
 import be.nabu.utils.mime.api.ModifiablePart;
 import be.nabu.utils.mime.api.MultiPart;
 import be.nabu.utils.mime.api.Part;
@@ -207,11 +208,11 @@ public class HTTPUtils {
 	/**
 	 * TODO: add stuff like timeout, domain, security-only...
 	 */
-	public static Header newSetCookieHeader(String key, String value) {
+	public static ModifiableHeader newSetCookieHeader(String key, String value) {
 		return new MimeHeader("Set-Cookie", key + "=" + value);
 	}
 	
-	public static Header newCookieHeader(String key, String value) {
+	public static ModifiableHeader newCookieHeader(String key, String value) {
 		return new MimeHeader("Cookie", key + "=" + value);
 	}
 	
