@@ -1,8 +1,10 @@
 package be.nabu.libs.http.core;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.UnknownHostException;
 import java.security.Principal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -24,6 +26,7 @@ import be.nabu.libs.http.api.server.AuthenticationHeader;
 import be.nabu.libs.http.api.server.CustomHeader;
 import be.nabu.libs.http.api.server.SecurityHeader;
 import be.nabu.libs.resources.ResourceReadableContainer;
+import be.nabu.libs.resources.URIUtils;
 import be.nabu.libs.resources.api.FiniteResource;
 import be.nabu.libs.resources.api.ReadableResource;
 import be.nabu.utils.io.IOUtils;
@@ -110,14 +113,34 @@ public class HTTPUtils {
 	}
 	
 	public static URI getURI(HTTPRequest request, boolean secure) throws FormatException {
-		Header hostHeader = MimeUtils.getHeader("Host", request.getContent().getHeaders());
 		try {
-			if (request.getTarget().startsWith("https://") || request.getTarget().startsWith("http://"))
-				return new URI(request.getTarget());
-			else if (hostHeader == null)
-				throw new FormatException("No 'host' header is present and the target is not complete");
-			else
-				return new URI((secure ? "https" : "http") + "://" + hostHeader.getValue() + (request.getTarget().startsWith("/") ? request.getTarget() : ""));
+			if (request.getTarget().startsWith("https://") || request.getTarget().startsWith("http://")) {
+				return new URI(URIUtils.encodeURI(request.getTarget()));
+			}
+			else {
+				Header hostHeader = MimeUtils.getHeader("Host", request.getContent().getHeaders());
+				String uri;
+				String target = request.getTarget();
+				if (!target.startsWith("/")) {
+					target = "/" + target;
+				}
+				if (hostHeader == null) {
+					if (request.getVersion() > 1.0) {
+						throw new FormatException("No 'host' header is present and the target is not complete");	
+					}
+					try {
+						String hostName = InetAddress.getLocalHost().getHostName();
+						uri = (secure ? "https" : "http") + "://" + hostName + target; 
+					}
+					catch (UnknownHostException e) {
+						throw new RuntimeException(e);
+					}
+				}
+				else {
+					uri = (secure ? "https" : "http") + "://" + hostHeader.getValue() + target;
+				}
+				return new URI(URIUtils.encodeURI(uri));
+			}
 		}
 		catch (URISyntaxException e) {
 			throw new FormatException(e);
