@@ -8,7 +8,7 @@ public enum ServerHeader implements CustomHeader {
 	REMOTE_HOST("X-Remote-Host", false),
 	REMOTE_PORT("X-Remote-Port", false),
 	REQUEST_URI("X-Request-URI", false),
-	RESOURCE_URI("X-Resource-URI", false),
+	RESOURCE_URI("X-Resource-URI", true),
 	REQUEST_SECURITY("X-Request-Security", false),
 	AUTHENTICATION_SCHEME("X-Authentication-Scheme", false),
 	REQUEST_RELATIVE_URI("X-Request-Relative-URI", false);
