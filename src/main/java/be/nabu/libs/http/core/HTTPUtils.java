@@ -186,10 +186,31 @@ public class HTTPUtils {
 	}
 	
 	public static boolean keepAlive(HTTPEntity entity) {
-		Header connectionHeader = entity.getContent() != null ? MimeUtils.getHeader("Connection", entity.getContent().getHeaders()) : null;
-		return connectionHeader != null 
-			? connectionHeader.getValue().equalsIgnoreCase("Keep-Alive")
-			: entity.getVersion() > 1.0;
+		List<String> values = entity.getContent() != null ? MimeUtils.getValues("Connection", entity.getContent().getHeaders()) : null;
+		if (values == null) {
+			return entity.getVersion() >= 1.1;
+		}
+		else {
+			boolean explicitClose = false;
+			boolean explicitKeepAlive = false;
+			for (String value : values) {
+				if ("Keep-Alive".equalsIgnoreCase(value)) {
+					explicitKeepAlive = true;
+				}
+				else if ("Close".equalsIgnoreCase(value)) {
+					explicitClose = true;
+				}
+			}
+			if (explicitClose) {
+				return false;
+			}
+			else if (explicitKeepAlive) {
+				return true;
+			}
+			else {
+				return entity.getVersion() >= 1.1;
+			}
+		}
 	}
 	
 	public static void setHeader(ModifiablePart part, CustomHeader header, String value) throws HTTPException {
@@ -206,13 +227,18 @@ public class HTTPUtils {
 		}
 	}
 	
+	public static AuthenticationHeader getAuthenticationHeader(Header...headers) {
+		for (Header header : headers) {
+			if (header instanceof AuthenticationHeader) {
+				return (AuthenticationHeader) header;
+			}
+		}
+		return null;
+	}
+	
 	public static AuthenticationHeader getAuthenticationHeader(HTTPEntity entity) {
 		if (entity.getContent() != null) {
-			for (Header header : entity.getContent().getHeaders()) {
-				if (header instanceof AuthenticationHeader) {
-					return (AuthenticationHeader) header;
-				}
-			}
+			return getAuthenticationHeader(entity.getContent().getHeaders());
 		}
 		return null;
 	}
