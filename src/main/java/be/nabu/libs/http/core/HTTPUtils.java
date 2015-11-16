@@ -51,6 +51,8 @@ public class HTTPUtils {
 	public static final String PROXY_AUTHENTICATE_RESPONSE = "Proxy-Authorization";
 	public static final String SERVER_AUTHENTICATE_REQUEST = "WWW-Authenticate";
 	public static final String SERVER_AUTHENTICATE_RESPONSE = "Authorization";
+	
+	private static ThreadLocal<SimpleDateFormat> formatter = new ThreadLocal<SimpleDateFormat>();
 
 	public static HTTPRequest get(URI target, Header...headers) {
 		List<Header> allHeaders = new ArrayList<Header>(Arrays.asList(headers));
@@ -263,6 +265,31 @@ public class HTTPUtils {
 	
 	public static ModifiableHeader newCookieHeader(String key, String value) {
 		return new MimeHeader("Cookie", key + "=" + value);
+	}
+	
+	public static ModifiableHeader newSetCookieHeader(String key, String value, Date expires, String path, String domain, Boolean secure, Boolean httpOnly) {
+		MimeHeader header = new MimeHeader("Set-Cookie", key + "=" + value);
+		if (expires != null) {
+			if (formatter.get() == null) {
+				SimpleDateFormat dateFormatter = new SimpleDateFormat("EEE, dd-MMM-yyyy HH:mm:ss 'GMT'", Locale.US);
+				dateFormatter.setTimeZone(TimeZone.getTimeZone("GMT"));
+				formatter.set(dateFormatter);
+			}
+			header.addComment("Expires=" + formatter.get().format(expires));
+		}
+		if (path != null) {
+			header.addComment("Path=" + path);
+		}
+		if (domain != null) {
+			header.addComment("Domain=" + domain);
+		}
+		if (secure != null && secure) {
+			header.addComment("Secure");
+		}
+		if (httpOnly != null && httpOnly) {
+			header.addComment("HttpOnly");
+		}
+		return header;
 	}
 	
 	public static Map<String, List<String>> getCookies(Header...headers) {
