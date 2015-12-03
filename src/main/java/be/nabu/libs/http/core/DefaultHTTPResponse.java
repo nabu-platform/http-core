@@ -1,25 +1,36 @@
 package be.nabu.libs.http.core;
 
-import be.nabu.libs.http.api.HTTPResponse;
+import be.nabu.libs.http.api.HTTPRequest;
+import be.nabu.libs.http.api.LinkableHTTPResponse;
 import be.nabu.utils.io.IOUtils;
 import be.nabu.utils.io.api.ByteBuffer;
 import be.nabu.utils.io.api.Container;
 import be.nabu.utils.mime.api.ModifiablePart;
 
-public class DefaultHTTPResponse implements HTTPResponse {
+public class DefaultHTTPResponse implements LinkableHTTPResponse {
 	private int code;
 	private String message;
 	private ModifiablePart content;
 	private double version;
+	private HTTPRequest request;
 	
-	public DefaultHTTPResponse(int code, String message, ModifiablePart content) {
-		this(code, message, content, 1.1);
-	}
-	public DefaultHTTPResponse(int code, String message, ModifiablePart content, double version) {
+	public DefaultHTTPResponse(HTTPRequest request, int code, String message, ModifiablePart content, double version) {
+		this.request = request;
 		this.code = code;
 		this.message = message;
 		this.content = content;
 		this.version = version;
+	}
+	
+	public DefaultHTTPResponse(HTTPRequest request, int code, String message, ModifiablePart content) {
+		this(request, code, message, content, 1.1);
+	}
+	
+	public DefaultHTTPResponse(int code, String message, ModifiablePart content) {
+		this(null, code, message, content, 1.1);
+	}
+	public DefaultHTTPResponse(int code, String message, ModifiablePart content, double version) {
+		this(null, code, message, content, version);
 	}
 	@Override
 	public int getCode() {
@@ -48,5 +59,14 @@ public class DefaultHTTPResponse implements HTTPResponse {
 		catch (Exception e) {
 			return e.getMessage() + ": " + super.toString();
 		}
+	}
+	
+	@Override
+	public HTTPRequest getRequest() {
+		return request;
+	}
+	@Override
+	public void setRequest(HTTPRequest request) {
+		this.request = request;
 	}
 }

@@ -72,23 +72,38 @@ public class HTTPUtils {
 		);
 	}
 	
+	@Deprecated
 	public static HTTPResponse newResponse(ReadableResource resource, Header...headers) throws IOException {
-		HTTPResponse newResponse = newResponse(resource.getContentType(), new ResourceReadableContainer(resource), headers);
+		return newResponse(null, resource, headers);
+	}
+	
+	public static HTTPResponse newResponse(HTTPRequest request, ReadableResource resource, Header...headers) throws IOException {
+		HTTPResponse newResponse = newResponse(request, resource.getContentType(), new ResourceReadableContainer(resource), headers);
 		if (resource instanceof FiniteResource && MimeUtils.getHeader("Content-Length", newResponse.getContent().getHeaders()) == null) {
 			newResponse.getContent().setHeader(new MimeHeader("Content-Length", new Long(((FiniteResource) resource).getSize()).toString()));
 		}
 		return newResponse;
 	}
 	
+	@Deprecated
 	public static HTTPResponse newEmptyResponse(Header...headers) {
+		return newEmptyResponse(null, headers);
+	}
+	
+	public static HTTPResponse newEmptyResponse(HTTPRequest request, Header...headers) {
 		List<Header> allHeaders = new ArrayList<Header>(Arrays.asList(headers));
 		allHeaders.add(new MimeHeader("Content-Length", "0"));
-		return new DefaultHTTPResponse(200, "OK", new PlainMimeEmptyPart(null,
+		return new DefaultHTTPResponse(request, 200, "OK", new PlainMimeEmptyPart(null,
 			allHeaders.toArray(new Header[0])
 		));
 	}
 	
+	@Deprecated
 	public static HTTPResponse newResponse(String contentType, ReadableContainer<ByteBuffer> content, Header...headers) throws IOException {
+		return newResponse(null, contentType, content, headers);
+	}
+	
+	public static HTTPResponse newResponse(HTTPRequest request, String contentType, ReadableContainer<ByteBuffer> content, Header...headers) throws IOException {
 		List<Header> allHeaders = new ArrayList<Header>(Arrays.asList(headers));
 		if (MimeUtils.getHeader("Content-Length", headers) == null) {
 			long size = 0;
@@ -111,7 +126,7 @@ public class HTTPUtils {
 		if (MimeUtils.getHeader("Content-Type", headers) == null && contentType != null) {
 			allHeaders.add(new MimeHeader("Content-Type", contentType));
 		}
-		return new DefaultHTTPResponse(200, "OK", new PlainMimeContentPart(null, content, allHeaders.toArray(new Header[0])));
+		return new DefaultHTTPResponse(request, 200, "OK", new PlainMimeContentPart(null, content, allHeaders.toArray(new Header[0])));
 	}
 	
 	public static URI getURI(HTTPRequest request, boolean secure) throws FormatException {
