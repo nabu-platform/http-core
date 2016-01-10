@@ -156,7 +156,7 @@ public class HTTPUtils {
 				else {
 					uri = (secure ? "https" : "http") + "://" + hostHeader.getValue() + target;
 				}
-				return new URI(URIUtils.encodeURI(uri));
+				return new URI(URIUtils.encodeURI(uri, false));
 			}
 		}
 		catch (URISyntaxException e) {
