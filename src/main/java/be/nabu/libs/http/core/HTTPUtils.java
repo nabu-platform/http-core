@@ -25,6 +25,7 @@ import be.nabu.libs.http.api.client.ClientAuthenticationHandler;
 import be.nabu.libs.http.api.server.AuthenticationHeader;
 import be.nabu.libs.http.api.server.CustomHeader;
 import be.nabu.libs.http.api.server.SecurityHeader;
+import be.nabu.libs.http.api.server.URIHeader;
 import be.nabu.libs.resources.ResourceReadableContainer;
 import be.nabu.libs.resources.URIUtils;
 import be.nabu.libs.resources.api.FiniteResource;
@@ -130,6 +131,13 @@ public class HTTPUtils {
 	}
 	
 	public static URI getURI(HTTPRequest request, boolean secure) throws FormatException {
+		if (request.getContent() != null) {
+			for (Header header : request.getContent().getHeaders()) {
+				if (header instanceof URIHeader) {
+					return ((URIHeader) header).getURI();
+				}
+			}
+		}
 		try {
 			if (request.getTarget().startsWith("https://") || request.getTarget().startsWith("http://")) {
 				return new URI(URIUtils.encodeURI(request.getTarget()));
@@ -156,7 +164,28 @@ public class HTTPUtils {
 				else {
 					uri = (secure ? "https" : "http") + "://" + hostHeader.getValue() + target;
 				}
-				return new URI(URIUtils.encodeURI(uri, false));
+				final URI targetURI = new URI(URIUtils.encodeURI(uri, false));
+				if (request.getContent() != null) {
+					request.getContent().setHeader(new URIHeader() {
+						@Override
+						public String getName() {
+							return ServerHeader.REQUEST_URI.getName();
+						}
+						@Override
+						public String getValue() {
+							return targetURI.toString();
+						}
+						@Override
+						public String[] getComments() {
+							return null;
+						}
+						@Override
+						public URI getURI() {
+							return targetURI;
+						}
+					});
+				}
+				return targetURI;
 			}
 		}
 		catch (URISyntaxException e) {
