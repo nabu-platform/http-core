@@ -1,6 +1,7 @@
 package be.nabu.libs.http.core;
 
 import java.net.URI;
+import java.util.Date;
 
 import be.nabu.libs.http.api.HTTPRequest;
 import be.nabu.utils.io.IOUtils;
@@ -14,6 +15,7 @@ public class DefaultHTTPRequest implements HTTPRequest {
 	private String method, target;
 	private double version;
 	private ModifiablePart content;
+	private Date created = new Date();
 	
 	public static DefaultHTTPRequest newRequest(String method, URI uri, ModifiablePart content) {
 		DefaultHTTPRequest request = new DefaultHTTPRequest(method, uri.getPath(), content);
@@ -60,4 +62,9 @@ public class DefaultHTTPRequest implements HTTPRequest {
 			return super.toString();
 		}
 	}
+
+	public Date getCreated() {
+		return created;
+	}
+	
 }

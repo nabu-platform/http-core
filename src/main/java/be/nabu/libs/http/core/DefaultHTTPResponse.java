@@ -1,5 +1,7 @@
 package be.nabu.libs.http.core;
 
+import java.util.Date;
+
 import be.nabu.libs.http.api.HTTPRequest;
 import be.nabu.libs.http.api.LinkableHTTPResponse;
 import be.nabu.utils.io.IOUtils;
@@ -13,6 +15,7 @@ public class DefaultHTTPResponse implements LinkableHTTPResponse {
 	private ModifiablePart content;
 	private double version;
 	private HTTPRequest request;
+	private Date created = new Date();
 	
 	public DefaultHTTPResponse(HTTPRequest request, int code, String message, ModifiablePart content, double version) {
 		this.request = request;
@@ -69,4 +72,9 @@ public class DefaultHTTPResponse implements LinkableHTTPResponse {
 	public void setRequest(HTTPRequest request) {
 		this.request = request;
 	}
+
+	public Date getCreated() {
+		return created;
+	}
+	
 }
