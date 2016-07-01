@@ -390,26 +390,28 @@ public class HTTPUtils {
 	
 	public static void setContentEncoding(ModifiablePart part, Header...requestHeaders) {
 		Long contentLength = MimeUtils.getContentLength(part.getHeaders());
-		// don't set any encoding headers if there is no data
-		if (contentLength != null && contentLength == 0) {
-			return;
-		}
-		// TODO: we should also check if the readable is null... but that risks potentially opening a "heavy" resource
-		String contentEncoding = null;
-		List<String> acceptedEncodings = MimeUtils.getAcceptedEncodings(requestHeaders);
-		if (acceptedEncodings.contains("gzip")) {
-			contentEncoding = "gzip";
-		}
-		else if (acceptedEncodings.contains("deflate")) {
-			contentEncoding = "deflate";
-		}
-		// if we have gzip/deflate content encoding, we need to remove any mention of content length (as it changes due to zipping)
-		// additionally we need to make sure the transfer encoding is set to "chunked"
-		if (contentEncoding != null) {
-			part.setHeader(new MimeHeader("Content-Encoding", contentEncoding));
-			part.removeHeader("Content-Length");
-			part.removeHeader("Transfer-Encoding");
-			part.setHeader(new MimeHeader("Transfer-Encoding", "chunked"));
+		if (MimeUtils.isDeflatable(MimeUtils.getContentType(part.getHeaders()))) {
+			// don't set any encoding headers if there is no data
+			if (contentLength != null && contentLength == 0) {
+				return;
+			}
+			// TODO: we should also check if the readable is null... but that risks potentially opening a "heavy" resource
+			String contentEncoding = null;
+			List<String> acceptedEncodings = MimeUtils.getAcceptedEncodings(requestHeaders);
+			if (acceptedEncodings.contains("gzip")) {
+				contentEncoding = "gzip";
+			}
+			else if (acceptedEncodings.contains("deflate")) {
+				contentEncoding = "deflate";
+			}
+			// if we have gzip/deflate content encoding, we need to remove any mention of content length (as it changes due to zipping)
+			// additionally we need to make sure the transfer encoding is set to "chunked"
+			if (contentEncoding != null) {
+				part.setHeader(new MimeHeader("Content-Encoding", contentEncoding));
+				part.removeHeader("Content-Length");
+				part.removeHeader("Transfer-Encoding");
+				part.setHeader(new MimeHeader("Transfer-Encoding", "chunked"));
+			}
 		}
 	}
 
