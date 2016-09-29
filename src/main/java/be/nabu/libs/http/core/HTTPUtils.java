@@ -93,7 +93,7 @@ public class HTTPUtils {
 	public static HTTPResponse newEmptyResponse(HTTPRequest request, Header...headers) {
 		List<Header> allHeaders = new ArrayList<Header>(Arrays.asList(headers));
 		allHeaders.add(new MimeHeader("Content-Length", "0"));
-		return new DefaultHTTPResponse(request, 200, "OK", new PlainMimeEmptyPart(null,
+		return new DefaultHTTPResponse(request, 204, "OK", new PlainMimeEmptyPart(null,
 			allHeaders.toArray(new Header[0])
 		));
 	}
