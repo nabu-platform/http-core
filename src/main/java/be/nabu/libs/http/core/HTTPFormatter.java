@@ -4,6 +4,7 @@ import java.io.IOException;
 
 import be.nabu.libs.http.api.HTTPRequest;
 import be.nabu.libs.http.api.HTTPResponse;
+import be.nabu.libs.resources.URIUtils;
 import be.nabu.utils.io.IOUtils;
 import be.nabu.utils.io.api.ByteBuffer;
 import be.nabu.utils.io.api.WritableContainer;
@@ -25,7 +26,7 @@ public class HTTPFormatter {
 	}
 	
 	private void formatRequestLine(HTTPRequest request, WritableContainer<ByteBuffer> output) throws IOException {
-		String firstLine = request.getMethod() + " " + request.getTarget() + " HTTP/" + request.getVersion() + "\r\n";
+		String firstLine = request.getMethod() + " " + URIUtils.encodeURI(request.getTarget()) + " HTTP/" + request.getVersion() + "\r\n";
 		output.write(IOUtils.wrap(firstLine.getBytes("ASCII"), true));
 	}
 	
