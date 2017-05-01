@@ -14,7 +14,8 @@ public enum ServerHeader implements CustomHeader {
 	REQUEST_SECURITY("X-Request-Security", false),
 	AUTHENTICATION_SCHEME("X-Authentication-Scheme", false),
 	LOCAL_PORT("X-Local-Port", false),
-	REQUEST_RELATIVE_URI("X-Request-Relative-URI", false);
+	REQUEST_RELATIVE_URI("X-Request-Relative-URI", false),
+	REQUEST_RECEIVED("X-Request-Received", true);
 	
 	public static final String NAME_REMOTE_USER = "X-Remote-User";
 	public static final String NAME_REMOTE_HOST = "X-Remote-Host";
@@ -27,6 +28,7 @@ public enum ServerHeader implements CustomHeader {
 	public static final String NAME_AUTHENTICATION_SCHEME = "X-Authentication-Scheme";
 	public static final String NAME_REQUEST_SECURITY = "X-Request-Security";
 	public static final String NAME_LOCAL_PORT = "X-Local-Port";
+	public static final String NAME_REQUEST_RECEIVED = "X-Request-Received";
 	
 	private String name;
 	private boolean isUserValueAllowed;
