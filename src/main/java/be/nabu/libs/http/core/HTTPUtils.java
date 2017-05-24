@@ -132,7 +132,7 @@ public class HTTPUtils {
 	public static URI getURI(HTTPRequest request, boolean secure) throws FormatException {
 		try {
 			if (request.getTarget().startsWith("https://") || request.getTarget().startsWith("http://")) {
-				return new URI(URIUtils.encodeURI(request.getTarget()));
+				return new URI(URIUtils.encodeURI(request.getTarget(), false));
 			}
 			else {
 				Header hostHeader = MimeUtils.getHeader("Host", request.getContent().getHeaders());

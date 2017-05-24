@@ -28,7 +28,7 @@ public class HTTPFormatter {
 	}
 	
 	private void formatRequestLine(HTTPRequest request, WritableContainer<ByteBuffer> output) throws IOException {
-		String firstLine = request.getMethod() + " " + URIUtils.encodeURI(request.getTarget()) + " HTTP/" + request.getVersion() + "\r\n";
+		String firstLine = request.getMethod() + " " + URIUtils.encodeURI(request.getTarget(), false) + " HTTP/" + request.getVersion() + "\r\n";
 		output.write(IOUtils.wrap(firstLine.getBytes("ASCII"), true));
 	}
 	
