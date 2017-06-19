@@ -69,7 +69,7 @@ public class HTTPParser {
 			: dynamicResourceProvider.createDynamicResource(container, "http-request", "application/octet-stream", false);
 		ModifiablePart content = MimeUtils.wrapModifiable(parser.parse(dynamicResource));
 		if (dynamicResource instanceof LocatableResource) {
-			HTTPUtils.setHeader(content, ServerHeader.RESOURCE_URI, ((LocatableResource) dynamicResource).getURI().toString());
+			HTTPUtils.setHeader(content, ServerHeader.RESOURCE_URI, ((LocatableResource) dynamicResource).getUri().toString());
 		}
 		return new DefaultHTTPRequest(method, target, content, version);
 	}
@@ -109,7 +109,7 @@ public class HTTPParser {
 				: dynamicResourceProvider.createDynamicResource(IOUtils.chain(false, IOUtils.wrap(readChars.getBytes("ASCII"), true), container), "http-response", "application/octet-stream", false);
 			ModifiablePart content = MimeUtils.wrapModifiable(parser.parse(dynamicResource));
 			if (dynamicResource instanceof LocatableResource) {
-				HTTPUtils.setHeader(content, ServerHeader.RESOURCE_URI, ((LocatableResource) dynamicResource).getURI().toString());
+				HTTPUtils.setHeader(content, ServerHeader.RESOURCE_URI, ((LocatableResource) dynamicResource).getUri().toString());
 			}
 			response = new DefaultHTTPResponse(code, message, content, version);
 		}
