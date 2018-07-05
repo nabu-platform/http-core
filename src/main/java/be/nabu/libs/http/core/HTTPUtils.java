@@ -167,7 +167,7 @@ public class HTTPUtils {
 	public static HTTPRequest redirect(HTTPRequest original, URI uri, boolean absolute) {
 		String target = absolute 
 			? uri.toString() 
-			: (uri.getPath().isEmpty() ? "/" : uri.getPath());
+			: (uri.getPath().isEmpty() ? "/" : uri.getPath()) + (uri.getQuery() != null ? "?" + uri.getQuery() : "") + (uri.getFragment() != null ? "#" + uri.getFragment() : "");
 		
 		HTTPRequest newRequest = new DefaultHTTPRequest(original.getMethod(), target, original.getContent());
 		newRequest.getContent().removeHeader("Host");
