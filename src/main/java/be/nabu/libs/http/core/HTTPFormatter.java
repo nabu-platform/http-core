@@ -60,4 +60,9 @@ public class HTTPFormatter {
 		else
 			formatter.format(response.getContent(), output);
 	}
+
+	public MimeFormatter getFormatter() {
+		return formatter;
+	}
+	
 }
