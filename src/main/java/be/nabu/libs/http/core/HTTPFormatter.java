@@ -16,14 +16,20 @@ public class HTTPFormatter {
 	private MimeFormatter formatter;
 	
 	public HTTPFormatter() {
+		this(true);
+	}
+	
+	public HTTPFormatter(boolean ignoreInternalHeaders) {
 		this.formatter = new MimeFormatter();
 		this.formatter.setIncludeMainContentTrailingLineFeeds(false);
 		this.formatter.setAllowBinary(true);
 		// don't fold the header, IE does not support this
 		this.formatter.setFoldHeader(false);
-		// ignore internal headers
-		for (ServerHeader serverHeader : ServerHeader.values()) {
-			this.formatter.ignoreHeaders(serverHeader.getName());
+		if (ignoreInternalHeaders) {
+			// ignore internal headers
+			for (ServerHeader serverHeader : ServerHeader.values()) {
+				this.formatter.ignoreHeaders(serverHeader.getName());
+			}
 		}
 	}
 	
