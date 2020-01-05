@@ -18,7 +18,9 @@ public enum ServerHeader implements CustomHeader {
 	REQUEST_RELATIVE_URI("X-Request-Relative-URI", false),
 	REQUEST_RECEIVED("X-Request-Received", true), // set to true because it is injected by the parser _before_ it is processed and such headers are removed. the parser makes sure we have no user values here
 	// possible values: ssr (stands for server side rendering)
-	REQUEST_TYPE("X-Request-Type", false);
+	REQUEST_TYPE("X-Request-Type", false),
+	// the proxy may have its own additional path to expose the application
+	PROXY_PATH("X-Proxy-Path", false);
 	
 	public static final String NAME_REMOTE_USER = "X-Remote-User";
 	public static final String NAME_REMOTE_HOST = "X-Remote-Host";
@@ -34,6 +36,7 @@ public enum ServerHeader implements CustomHeader {
 	public static final String NAME_LOCAL_PORT = "X-Local-Port";
 	public static final String NAME_REQUEST_RECEIVED = "X-Request-Received";
 	public static final String NAME_REQUEST_TYPE = "X-Request-Type";
+	public static final String NAME_PROXY_PATH = "X-Proxy-Path";
 	
 	private String name;
 	private boolean isUserValueAllowed;

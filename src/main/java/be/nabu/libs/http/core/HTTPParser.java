@@ -3,6 +3,7 @@ package be.nabu.libs.http.core;
 import java.io.IOException;
 import java.text.ParseException;
 
+import be.nabu.libs.http.HTTPCodes;
 import be.nabu.libs.http.api.HTTPRequest;
 import be.nabu.libs.http.api.HTTPResponse;
 import be.nabu.libs.http.api.server.HTTPExpectContinueHandler;
@@ -86,13 +87,17 @@ public class HTTPParser {
 		// the first space delimits the method
 		int firstSpaceIndex = request.indexOf(' ');
 		if (firstSpaceIndex < 0)
-			throw new ParseException("Could not parse request line: " + request, 0);
+			throw new ParseException("Could not parse response line: " + request, 0);
 		int secondSpaceIndex = request.indexOf(' ', firstSpaceIndex + 1);
-		if (secondSpaceIndex < 0)
-			throw new ParseException("Could not parse request line: " + request, 0);
 		double version = new Double(request.substring(0, firstSpaceIndex).replaceFirst("HTTP/", "").trim());
-		int code = new Integer(request.substring(firstSpaceIndex + 1, secondSpaceIndex).trim());
-		String message = request.substring(secondSpaceIndex + 1);
+		int code = new Integer(secondSpaceIndex < 0 ? request.substring(firstSpaceIndex + 1).trim() : request.substring(firstSpaceIndex + 1, secondSpaceIndex).trim());
+		String message;
+		if (secondSpaceIndex >= 0) {
+			message = request.substring(secondSpaceIndex + 1);
+		}
+		else {
+			message = HTTPCodes.getMessage(code);
+		}
 		
 		// now that we have parsed the HTTP start, we need to check if there is any content and if so parse it
 		CharBuffer buffer = IOUtils.newCharBuffer(2, false);
