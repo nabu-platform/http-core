@@ -1,10 +1,14 @@
 package be.nabu.libs.http.core;
 
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.io.Writer;
 import java.net.InetAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.UnknownHostException;
+import java.nio.charset.Charset;
 import java.security.Principal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -75,6 +79,42 @@ public class HTTPUtils {
 	@Deprecated
 	public static HTTPResponse newResponse(ReadableResource resource, Header...headers) throws IOException {
 		return newResponse(null, resource, headers);
+	}
+	
+	public static String getForwardedFor(Header...headers) {
+		String ip = null;
+		// our internal header takes precedence
+		if (ip == null) {
+			Header internal = MimeUtils.getHeader(ServerHeader.REMOTE_ADDRESS.getName(), headers);
+			if (internal != null) {
+				ip = internal.getValue();
+			}
+		}
+		if (ip == null) {
+			// https://tools.ietf.org/html/rfc7239#section-5
+			// e.g. Forwarded: for=192.0.2.60;proto=http;by=203.0.113.43
+			Header forwarded = MimeUtils.getHeader("Forwarded", headers);
+			if (forwarded != null && forwarded.getValue() != null && forwarded.getValue().trim().startsWith("for")) {
+				String[] split = forwarded.getValue().trim().split("[\\s]*=[\\s]*");
+				if (split.length == 2) {
+					ip = split[1];
+					// it can contain a port, let's leave that out for now
+					int index = ip.indexOf(':');
+					if (index >= 0) {
+						ip = ip.substring(0, index);
+					}
+				}
+			}
+		}
+		if (ip == null) {
+			// there can be multiple comma separated addresses, see documentation for https://en.wikipedia.org/wiki/X-Forwarded-For
+			// e.g. X-Forwarded-For: client, proxy1, proxy2
+			Header forwardedFor = MimeUtils.getHeader("X-Forwarded-For", headers);
+			if (forwardedFor != null && forwardedFor.getValue().trim() != null) {
+				ip = forwardedFor.getValue().split("[\\s]*,[\\s]*")[0];
+			}
+		}
+		return ip;
 	}
 	
 	public static HTTPResponse newResponse(HTTPRequest request, ReadableResource resource, Header...headers) throws IOException {
@@ -415,4 +455,43 @@ public class HTTPUtils {
 		}
 	}
 
+	public static HttpMessage toMessage(HTTPEntity entity) {
+		HttpMessage message = new HttpMessage();
+		String contentType = MimeUtils.getContentType(entity.getContent().getHeaders());
+		List<String> allowedContent = Arrays.asList("application/xml", "text/xml", "application/json", "text/html");
+		Long contentLength = MimeUtils.getContentLength(entity.getContent().getHeaders());
+		boolean isEmpty = (contentLength != null && contentLength == 0) || (entity instanceof HTTPRequest && "GET".equalsIgnoreCase(((HTTPRequest) entity).getMethod()));
+		
+		// currently we only ever allow headers!!
+		// we don't want to risk emtying out the streams...
+		// if it is not one of the whitelisted content types, only dump the headers
+//		if (!allowedContent.contains(contentType) && !isEmpty) {
+			if (entity instanceof HTTPRequest) {
+				entity = new DefaultHTTPRequest(((HTTPRequest) entity).getMethod(), ((HTTPRequest) entity).getTarget(), new PlainMimeEmptyPart(null, entity.getContent().getHeaders()));
+			}
+			else if (entity instanceof HTTPResponse) {
+				entity = new DefaultHTTPResponse(((HTTPResponse) entity).getCode(), ((HTTPResponse) entity).getMessage(), new PlainMimeEmptyPart(null, entity.getContent().getHeaders()));
+			}
+			message.setPartial(true);
+//		}
+		
+		try {
+			ByteBuffer newByteBuffer = IOUtils.newByteBuffer();
+			if (entity instanceof HTTPRequest) {
+				new HTTPFormatter().formatRequest((HTTPRequest) entity, newByteBuffer);
+			}
+			else if (entity instanceof HTTPResponse) {
+				new HTTPFormatter().formatResponse((HTTPResponse) entity, newByteBuffer);
+			}
+			message.setMessage(new String(IOUtils.toBytes(newByteBuffer), Charset.forName("UTF-8")));
+		}
+		catch (Exception e) {
+			Writer writer = new StringWriter();
+			PrintWriter printer = new PrintWriter(writer);
+			e.printStackTrace(printer);
+			printer.flush();
+			message.setMessage(writer.toString());
+		}
+		return message;
+	}
 }
