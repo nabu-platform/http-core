@@ -34,7 +34,7 @@ public class HTTPFormatter {
 	}
 	
 	private void formatRequestLine(HTTPRequest request, WritableContainer<ByteBuffer> output) throws IOException {
-		String firstLine = request.getMethod() + " " + URIUtils.encodeURI(request.getTarget(), false) + " HTTP/" + request.getVersion() + "\r\n";
+		String firstLine = request.getMethod() + " " + URIUtils.encodeURI(request.getTarget(), false) + " " + request.getProtocol() + "/" + request.getVersion() + "\r\n";
 		output.write(IOUtils.wrap(firstLine.getBytes("ASCII"), true));
 	}
 	
@@ -59,7 +59,7 @@ public class HTTPFormatter {
 	}
 	
 	public void formatResponse(HTTPResponse response, WritableContainer<ByteBuffer> output) throws IOException, FormatException {
-		String firstLine = "HTTP/" + response.getVersion() + " " + response.getCode() + " " + response.getMessage() + "\r\n";
+		String firstLine = response.getProtocol() + "/" + response.getVersion() + " " + response.getCode() + " " + response.getMessage() + "\r\n";
 		output.write(IOUtils.wrap(firstLine.getBytes("ASCII"), true));
 		if (response.getContent() == null)
 			output.write(IOUtils.wrap("\r\n".getBytes(), true));

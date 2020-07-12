@@ -12,7 +12,7 @@ import be.nabu.utils.mime.impl.MimeHeader;
 
 public class DefaultHTTPRequest implements HTTPRequest {
 	
-	private String method, target;
+	private String method, target, protocol;
 	private double version;
 	private ModifiablePart content;
 	private Date created = new Date();
@@ -28,6 +28,11 @@ public class DefaultHTTPRequest implements HTTPRequest {
 	}
 	
 	public DefaultHTTPRequest(String method, String target, ModifiablePart content, double version) {
+		this("HTTP", method, target, content, version);
+	}
+	
+	public DefaultHTTPRequest(String protocol, String method, String target, ModifiablePart content, double version) {
+		this.protocol = protocol.toUpperCase();
 		this.method = method.toUpperCase();
 		this.target = target;
 		this.version = version;
@@ -65,6 +70,11 @@ public class DefaultHTTPRequest implements HTTPRequest {
 
 	public Date getCreated() {
 		return created;
+	}
+
+	@Override
+	public String getProtocol() {
+		return protocol;
 	}
 	
 }

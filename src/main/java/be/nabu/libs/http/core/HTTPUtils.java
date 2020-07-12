@@ -81,9 +81,39 @@ public class HTTPUtils {
 		return newResponse(null, resource, headers);
 	}
 	
+	public static String getRemoteAddress(boolean proxied, Header...headers) {
+		String address = null;
+		// our internal header takes precedence
+		if (address == null) {
+			Header internal = MimeUtils.getHeader(ServerHeader.REMOTE_ADDRESS.getName(), headers);
+			if (internal != null) {
+				address = internal.getValue();
+			}
+		}
+		if (address == null && proxied) {
+			address = getForwardedFor(headers);
+		}
+		return address;
+	}
+	
+	public static String getRemoteHost(boolean proxied, Header...headers) {
+		String host = null;
+		// our internal header takes precedence
+		if (host == null) {
+			Header internal = MimeUtils.getHeader(ServerHeader.REMOTE_HOST.getName(), headers);
+			if (internal != null) {
+				host = internal.getValue();
+			}
+		}
+		if (host == null) {
+			host = getRemoteAddress(proxied, headers);
+		}
+		return host;
+	}
+	
 	public static String getForwardedFor(Header...headers) {
 		String ip = null;
-		// our internal header takes precedence
+		// our internal header takes precedence (this is deprecated with two new utility methods above)
 		if (ip == null) {
 			Header internal = MimeUtils.getHeader(ServerHeader.REMOTE_ADDRESS.getName(), headers);
 			if (internal != null) {
