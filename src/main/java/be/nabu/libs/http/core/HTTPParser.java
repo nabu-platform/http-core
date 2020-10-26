@@ -31,6 +31,10 @@ public class HTTPParser {
 		this.isBlocking = isBlocking;
 	}
 	
+	public HTTPRequest parseRequest(ReadableContainer<ByteBuffer> container, ExpectContinueHandler expectContinueHandler) throws ParseException, IOException {
+		return parseRequest(container, expectContinueHandler, "HTTP");
+	}
+	
 	/**
 	 * 
 	 * @param container
@@ -40,7 +44,7 @@ public class HTTPParser {
 	 * @throws IOException
 	 */
 	@SuppressWarnings({ "unchecked", "resource" })
-	public HTTPRequest parseRequest(ReadableContainer<ByteBuffer> container, ExpectContinueHandler expectContinueHandler) throws ParseException, IOException {		
+	public HTTPRequest parseRequest(ReadableContainer<ByteBuffer> container, ExpectContinueHandler expectContinueHandler, String protocol) throws ParseException, IOException {		
 		ReadableContainer<CharBuffer> charContainer = new ReadableStraightByteToCharContainer(container);
 		charContainer = IOUtils.delimit(charContainer, "\n");
 		String request = IOUtils.toString(charContainer).trim();
@@ -49,12 +53,12 @@ public class HTTPParser {
 			return null;
 		// the first space delimits the method
 		int firstSpaceIndex = request.indexOf(' ');
-		int httpIndex = request.lastIndexOf("HTTP/");
+		int protocolIndex = request.lastIndexOf(protocol + "/");
 		
 		String method = request.substring(0, firstSpaceIndex);
 		// make sure multiple slashes are replaced by a single one
-		String target = request.substring(firstSpaceIndex + 1, httpIndex).trim().replaceFirst("[/]{2,}", "/");
-		double version = new Double(request.substring(httpIndex).replaceFirst("HTTP/", "").trim());
+		String target = request.substring(firstSpaceIndex + 1, protocolIndex).trim().replaceFirst("[/]{2,}", "/");
+		double version = new Double(request.substring(protocolIndex).replaceFirst(protocol + "/", "").trim());
 
 		MimeParser parser = new MimeParser();
 		// if the IO is blocking, we need to know the content length
@@ -66,21 +70,25 @@ public class HTTPParser {
 			parser.setExpectContinueHandler(expectContinueHandler);
 		}
 		ReadableResource dynamicResource = dynamicResourceProvider instanceof ContextualDynamicResourceProvider
-			? ((ContextualDynamicResourceProvider<String>) dynamicResourceProvider).createDynamicResource(target, container, "http-request", "application/octet-stream", false)
-			: dynamicResourceProvider.createDynamicResource(container, "http-request", "application/octet-stream", false);
+			? ((ContextualDynamicResourceProvider<String>) dynamicResourceProvider).createDynamicResource(target, container, protocol.toLowerCase() + "-request", "application/octet-stream", false)
+			: dynamicResourceProvider.createDynamicResource(container, protocol.toLowerCase() + "-request", "application/octet-stream", false);
 		ModifiablePart content = MimeUtils.wrapModifiable(parser.parse(dynamicResource));
 		if (dynamicResource instanceof LocatableResource) {
 			HTTPUtils.setHeader(content, ServerHeader.RESOURCE_URI, ((LocatableResource) dynamicResource).getUri().toString());
 		}
-		return new DefaultHTTPRequest(method, target, content, version);
+		return new DefaultHTTPRequest(protocol, method, target, content, version);
 	}
 
 	public boolean isBlocking() {
 		return isBlocking;
 	}
 	
-	@SuppressWarnings("unchecked")
 	public HTTPResponse parseResponse(ReadableContainer<ByteBuffer> container) throws IOException, ParseException {
+		return parseResponse(container, "HTTP");
+	}
+	
+	@SuppressWarnings("unchecked")
+	public HTTPResponse parseResponse(ReadableContainer<ByteBuffer> container, String protocol) throws IOException, ParseException {
 		ReadableContainer<CharBuffer> charContainer = new ReadableStraightByteToCharContainer(container);
 		ReadableContainer<CharBuffer> delimitedCharContainer = IOUtils.delimit(charContainer, "\n");
 		String request = IOUtils.toString(delimitedCharContainer).trim();
@@ -89,7 +97,7 @@ public class HTTPParser {
 		if (firstSpaceIndex < 0)
 			throw new ParseException("Could not parse response line: " + request, 0);
 		int secondSpaceIndex = request.indexOf(' ', firstSpaceIndex + 1);
-		double version = new Double(request.substring(0, firstSpaceIndex).replaceFirst("HTTP/", "").trim());
+		double version = new Double(request.substring(0, firstSpaceIndex).replaceFirst(protocol + "/", "").trim());
 		int code = new Integer(secondSpaceIndex < 0 ? request.substring(firstSpaceIndex + 1).trim() : request.substring(firstSpaceIndex + 1, secondSpaceIndex).trim());
 		String message;
 		if (secondSpaceIndex >= 0) {
@@ -105,18 +113,20 @@ public class HTTPParser {
 		String readChars = IOUtils.toString(buffer);
 		HTTPResponse response = null;
 		if (readChars.equals("\n") || readChars.equals("\r\n"))
-			response = new DefaultHTTPResponse(code, message, null, version);
+			response = new DefaultHTTPResponse(protocol, null, code, message, null, version);
 		else {
 			MimeParser parser = new MimeParser();
 			parser.setRequireKnownContentLength(isBlocking);
+			// for responses this is allowed
+			parser.setAllowNoMessageSizeForClosedConnections(true);
 			ReadableResource dynamicResource = dynamicResourceProvider instanceof ContextualDynamicResourceProvider
-				? ((ContextualDynamicResourceProvider<Integer>) dynamicResourceProvider).createDynamicResource(code, IOUtils.chain(false, IOUtils.wrap(readChars.getBytes("ASCII"), true), container), "http-response", "application/octet-stream", false)
-				: dynamicResourceProvider.createDynamicResource(IOUtils.chain(false, IOUtils.wrap(readChars.getBytes("ASCII"), true), container), "http-response", "application/octet-stream", false);
+				? ((ContextualDynamicResourceProvider<Integer>) dynamicResourceProvider).createDynamicResource(code, IOUtils.chain(false, IOUtils.wrap(readChars.getBytes("ASCII"), true), container), protocol.toLowerCase() + "-response", "application/octet-stream", false)
+				: dynamicResourceProvider.createDynamicResource(IOUtils.chain(false, IOUtils.wrap(readChars.getBytes("ASCII"), true), container), protocol.toLowerCase() + "-response", "application/octet-stream", false);
 			ModifiablePart content = MimeUtils.wrapModifiable(parser.parse(dynamicResource));
 			if (dynamicResource instanceof LocatableResource) {
 				HTTPUtils.setHeader(content, ServerHeader.RESOURCE_URI, ((LocatableResource) dynamicResource).getUri().toString());
 			}
-			response = new DefaultHTTPResponse(code, message, content, version);
+			response = new DefaultHTTPResponse(protocol, null, code, message, content, version);
 		}
 		return response;
 	}

@@ -11,13 +11,18 @@ import be.nabu.utils.mime.api.ModifiablePart;
 
 public class DefaultHTTPResponse implements LinkableHTTPResponse {
 	private int code;
-	private String message;
+	private String message, protocol;
 	private ModifiablePart content;
 	private double version;
 	private HTTPRequest request;
 	private Date created = new Date();
 	
 	public DefaultHTTPResponse(HTTPRequest request, int code, String message, ModifiablePart content, double version) {
+		this("HTTP", request, code, message, content, version);
+	}
+	
+	public DefaultHTTPResponse(String protocol, HTTPRequest request, int code, String message, ModifiablePart content, double version) {
+		this.protocol = protocol.toUpperCase();
 		this.request = request;
 		this.code = code;
 		this.message = message;
@@ -76,5 +81,9 @@ public class DefaultHTTPResponse implements LinkableHTTPResponse {
 	public Date getCreated() {
 		return created;
 	}
-	
+
+	public String getProtocol() {
+		return protocol;
+	}
+
 }
