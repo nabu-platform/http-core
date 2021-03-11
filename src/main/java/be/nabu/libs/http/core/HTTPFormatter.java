@@ -9,6 +9,7 @@ import be.nabu.utils.io.IOUtils;
 import be.nabu.utils.io.api.ByteBuffer;
 import be.nabu.utils.io.api.WritableContainer;
 import be.nabu.utils.mime.impl.FormatException;
+import be.nabu.utils.mime.impl.HeaderEncoding;
 import be.nabu.utils.mime.impl.MimeFormatter;
 
 public class HTTPFormatter {
@@ -21,6 +22,7 @@ public class HTTPFormatter {
 	
 	public HTTPFormatter(boolean ignoreInternalHeaders) {
 		this.formatter = new MimeFormatter();
+		this.formatter.setHeaderEncoding(HeaderEncoding.RFC2231);
 		this.formatter.setIncludeMainContentTrailingLineFeeds(false);
 		this.formatter.setAllowBinary(true);
 		// don't fold the header, IE does not support this

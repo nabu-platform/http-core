@@ -81,6 +81,24 @@ public class HTTPUtils {
 		return newResponse(null, resource, headers);
 	}
 	
+	public static Integer getRemotePort(boolean proxied, Header...headers) {
+		Integer port = null;
+		Header header = MimeUtils.getHeader(ServerHeader.REMOTE_PORT.getName(), headers);
+		if (header != null && header.getValue() != null) {
+			port = Integer.parseInt(header.getValue());
+		}
+		if (port == null && proxied) {
+			String forwardedFor = getForwardedFor(true, headers);
+			if (forwardedFor != null) {
+				String[] split = forwardedFor.split(":");
+				if (split.length > 1) {
+					port = Integer.parseInt(split[1]);
+				}
+			}
+		}
+		return port; 
+	}
+	
 	public static String getRemoteAddress(boolean proxied, Header...headers) {
 		String address = null;
 		// our internal header takes precedence
@@ -112,9 +130,14 @@ public class HTTPUtils {
 	}
 	
 	public static String getForwardedFor(Header...headers) {
+		return getForwardedFor(false, headers);
+	}
+	
+	// retrofitted for dual use to get the port as well, not entirely clean
+	private static String getForwardedFor(boolean needPort, Header...headers) {
 		String ip = null;
 		// our internal header takes precedence (this is deprecated with two new utility methods above)
-		if (ip == null) {
+		if (ip == null && !needPort) {
 			Header internal = MimeUtils.getHeader(ServerHeader.REMOTE_ADDRESS.getName(), headers);
 			if (internal != null) {
 				ip = internal.getValue();
@@ -128,11 +151,6 @@ public class HTTPUtils {
 				String[] split = forwarded.getValue().trim().split("[\\s]*=[\\s]*");
 				if (split.length == 2) {
 					ip = split[1];
-					// it can contain a port, let's leave that out for now
-					int index = ip.indexOf(':');
-					if (index >= 0) {
-						ip = ip.substring(0, index);
-					}
 				}
 			}
 		}
@@ -142,6 +160,13 @@ public class HTTPUtils {
 			Header forwardedFor = MimeUtils.getHeader("X-Forwarded-For", headers);
 			if (forwardedFor != null && forwardedFor.getValue().trim() != null) {
 				ip = forwardedFor.getValue().split("[\\s]*,[\\s]*")[0];
+			}
+		}
+		if (ip != null && !needPort) {
+			// it can contain a port, let's leave that out for now
+			int index = ip.indexOf(':');
+			if (index >= 0) {
+				ip = ip.substring(0, index);
 			}
 		}
 		return ip;
@@ -495,6 +520,10 @@ public class HTTPUtils {
 		// currently we only ever allow headers!!
 		// we don't want to risk emtying out the streams...
 		// if it is not one of the whitelisted content types, only dump the headers
+		
+		// only if we have a reopeneable content part can we inspect the content in trace mode
+		ModifiablePart content = entity.getContent();
+		if (!(content instanceof ContentPart) || !((ContentPart) content).isReopenable()) {
 //		if (!allowedContent.contains(contentType) && !isEmpty) {
 			if (entity instanceof HTTPRequest) {
 				entity = new DefaultHTTPRequest(((HTTPRequest) entity).getMethod(), ((HTTPRequest) entity).getTarget(), new PlainMimeEmptyPart(null, entity.getContent().getHeaders()));
@@ -503,15 +532,24 @@ public class HTTPUtils {
 				entity = new DefaultHTTPResponse(((HTTPResponse) entity).getCode(), ((HTTPResponse) entity).getMessage(), new PlainMimeEmptyPart(null, entity.getContent().getHeaders()));
 			}
 			message.setPartial(true);
+		}
 //		}
 		
 		try {
 			ByteBuffer newByteBuffer = IOUtils.newByteBuffer();
 			if (entity instanceof HTTPRequest) {
-				new HTTPFormatter().formatRequest((HTTPRequest) entity, newByteBuffer);
+				HTTPFormatter httpFormatter = new HTTPFormatter();
+				// we can't stream binary data in the trace mode
+				// if you have for example gzip turned on, this will mess up
+				httpFormatter.getFormatter().setDisableContentEncoding(true);
+				httpFormatter.formatRequest((HTTPRequest) entity, newByteBuffer);
 			}
 			else if (entity instanceof HTTPResponse) {
-				new HTTPFormatter().formatResponse((HTTPResponse) entity, newByteBuffer);
+				HTTPFormatter httpFormatter = new HTTPFormatter();
+				// we can't stream binary data in the trace mode
+				// if you have for example gzip turned on, this will mess up most trace modes
+				httpFormatter.getFormatter().setDisableContentEncoding(true);
+				httpFormatter.formatResponse((HTTPResponse) entity, newByteBuffer);
 			}
 			message.setMessage(new String(IOUtils.toBytes(newByteBuffer), Charset.forName("UTF-8")));
 		}
