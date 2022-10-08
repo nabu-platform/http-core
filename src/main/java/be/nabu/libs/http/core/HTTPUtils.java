@@ -266,8 +266,10 @@ public class HTTPUtils {
 		
 		HTTPRequest newRequest = new DefaultHTTPRequest(original.getMethod(), target, original.getContent());
 		newRequest.getContent().removeHeader("Host");
-		if (!absolute)
-			newRequest.getContent().setHeader(new MimeHeader("Host", uri.getAuthority()));
+//		if (!absolute)
+		// host is always required in 1.1+?
+		// if an absolute target is used, the host MUST match the one in the target
+		newRequest.getContent().setHeader(new MimeHeader("Host", uri.getAuthority()));
 		return newRequest;
 	}
 	
