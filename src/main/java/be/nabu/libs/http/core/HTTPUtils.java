@@ -76,6 +76,30 @@ public class HTTPUtils {
 		);
 	}
 	
+	public static void validateResponse(HTTPResponse response) {
+		if (response.getCode() < 200 || response.getCode() >= 300) {
+			byte[] content = null;
+			if (response.getContent() instanceof ContentPart) {
+				try {
+					ReadableContainer<ByteBuffer> readable = ((ContentPart) response.getContent()).getReadable();
+					if (readable != null) {
+						try {
+							content = IOUtils.toBytes(readable);
+						}
+						finally {
+							readable.close();
+						}
+					}
+				}
+				catch (Exception e) {
+					// suppress
+					e.printStackTrace();
+				}
+			}
+			throw new HTTPException(response.getCode(), response.getMessage() + (content == null ? "" : "\n" + new String(content)));
+		}
+	}
+	
 	@Deprecated
 	public static HTTPResponse newResponse(ReadableResource resource, Header...headers) throws IOException {
 		return newResponse(null, resource, headers);
