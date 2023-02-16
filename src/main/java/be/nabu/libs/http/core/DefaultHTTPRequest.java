@@ -55,6 +55,14 @@ public class DefaultHTTPRequest implements HTTPRequest {
 		return content;
 	}
 	
+	public void setMethod(String method) {
+		this.method = method;
+	}
+
+	public void setTarget(String target) {
+		this.target = target;
+	}
+
 	@Override
 	public String toString() {
 		HTTPFormatter formatter = new HTTPFormatter();
