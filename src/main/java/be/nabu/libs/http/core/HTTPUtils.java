@@ -404,6 +404,10 @@ public class HTTPUtils {
 	}
 	
 	public static ModifiableHeader newSetCookieHeader(String key, String value, Date expires, String path, String domain, Boolean secure, Boolean httpOnly) {
+		return newSetCookieHeader(key, value, expires, path, domain, secure, httpOnly, null);
+	}
+	
+	public static ModifiableHeader newSetCookieHeader(String key, String value, Date expires, String path, String domain, Boolean secure, Boolean httpOnly, SameSite sameSite) {
 		MimeHeader header = new MimeHeader("Set-Cookie", key + "=" + value);
 		if (expires != null) {
 			if (formatter.get() == null) {
@@ -424,6 +428,15 @@ public class HTTPUtils {
 		}
 		if (httpOnly != null && httpOnly) {
 			header.addComment("HttpOnly");
+		}
+		// only secure cookies can be set to same site none
+		if (sameSite == SameSite.NONE) {
+			if (secure != null && secure) {
+				header.addComment("SameSite=None");
+			}
+		}
+		else if (sameSite != null) {
+			header.addComment("SameSite=" + sameSite.name().substring(0, 1) + sameSite.name().substring(0).toLowerCase());
 		}
 		return header;
 	}
