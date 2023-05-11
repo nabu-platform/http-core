@@ -21,6 +21,10 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
 
+import be.nabu.libs.authentication.api.Device;
+import be.nabu.libs.authentication.api.Token;
+import be.nabu.libs.authentication.api.principals.DevicePrincipal;
+import be.nabu.libs.authentication.impl.DeviceImpl;
 import be.nabu.libs.http.HTTPException;
 import be.nabu.libs.http.api.HTTPEntity;
 import be.nabu.libs.http.api.HTTPRequest;
@@ -58,6 +62,67 @@ public class HTTPUtils {
 	
 	private static ThreadLocal<SimpleDateFormat> formatter = new ThreadLocal<SimpleDateFormat>();
 
+	public static Device getDevice(String realm, Token token, boolean allowHeader, Header...headers) {
+		String deviceId = null;
+		if (allowHeader) {
+			Header header = MimeUtils.getHeader("Device-Id", headers);
+			if (header != null) {
+				deviceId = header.getValue();
+			}
+		}
+		if (deviceId == null) {
+			Map<String, List<String>> cookies = HTTPUtils.getCookies(headers);
+			// if we have a realm, we only want to check that realm specifically
+			if (realm != null) {
+				List<String> list = cookies.get("Device-" + realm);
+				if (list != null && !list.isEmpty()) {
+					deviceId = list.get(0);
+				}
+			}
+			if (deviceId == null) {
+				// check generic device-id cookie
+				List<String> list = cookies.get("device-id");
+				if (list != null && !list.isEmpty()) {
+					deviceId = list.get(0);
+				}
+				// if we didn't ask for a specific realm, check all 
+				else if (realm == null) {
+					for (String cookie : cookies.keySet()) {
+						if (cookie.toLowerCase().startsWith("device-")) {
+							list = cookies.get(cookie);
+							if (list != null && !list.isEmpty()) {
+								deviceId = list.get(0);
+								break;
+							}						
+						}
+					}
+				}
+			}
+		}
+		Device device = null;
+		if (deviceId != null) {
+			Header userAgent = MimeUtils.getHeader("User-Agent", headers);
+			Header remoteAddress = MimeUtils.getHeader(ServerHeader.REMOTE_ADDRESS.getName(), headers);
+			device = new DeviceImpl(deviceId, userAgent == null ? null : MimeUtils.getFullHeaderValue(userAgent), remoteAddress == null ? null : remoteAddress.getValue());
+		}
+		if (device == null && token != null) {
+			if (token != null && token instanceof DevicePrincipal) {
+				device = ((DevicePrincipal) token).getDevice();
+			}
+			if (device == null && token != null && token.getCredentials() != null && !token.getCredentials().isEmpty()) {
+				for (Principal credential : token.getCredentials()) {
+					if (credential instanceof DevicePrincipal) {
+						device = ((DevicePrincipal) credential).getDevice();
+						if (device != null) {
+							break;
+						}
+					}
+				}
+			}
+		}
+		return device;
+	}
+	
 	public static HTTPRequest get(URI target, Header...headers) {
 		List<Header> allHeaders = new ArrayList<Header>(Arrays.asList(headers));
 		if (MimeUtils.getHeader("Content-Length", headers) == null) {
