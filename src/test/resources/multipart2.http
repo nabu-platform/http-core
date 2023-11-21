@@ -1,0 +1,14 @@
+HTTP/1.1 200 OK
+MIME-Version: 1.0
+Content-Language: en-US
+Content-Type: multipart/related;boundary="MIMEBoundary_997644b5b4053cd65a2838323ddce7a869afbc2a47b9cec5";type="application/xop+xml";start="<0.897644b5b4053cd65a2838323ddce7a869afbc2a47b9cec5@apache.org>";start-info="text/xml"
+Content-Length: 655
+
+--MIMEBoundary_997644b5b4053cd65a2838323ddce7a869afbc2a47b9cec5
+Content-Type: application/xop+xml;charset=utf-8;type="text/xml"
+Content-Transfer-Encoding: binary
+Content-ID: <0.897644b5b4053cd65a2838323ddce7a869afbc2a47b9cec5@apache.org>
+
+<?xml version='1.0' encoding='utf-8'?><soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"><soapenv:Body><a:linkFirmResponse xmlns:a="http://service.colruytgroup.com/colruytgroup/finance/core/financialrelationregsvc/v1/" xmlns:b="http://www.colruytgroup.com/schema/commons/service"/></soapenv:Body></soapenv:Envelope>
+
+--MIMEBoundary_997644b5b4053cd65a2838323ddce7a869afbc2a47b9cec5--

@@ -627,7 +627,8 @@ public class HTTPUtils {
 		
 		// only if we have a reopeneable content part can we inspect the content in trace mode
 		ModifiablePart content = entity.getContent();
-		if (!(content instanceof ContentPart) || !((ContentPart) content).isReopenable()) {
+		if (!MimeUtils.isReopenable(content)) {
+//		if (!(content instanceof ContentPart) || !((ContentPart) content).isReopenable()) {
 //		if (!allowedContent.contains(contentType) && !isEmpty) {
 			if (entity instanceof HTTPRequest) {
 				entity = new DefaultHTTPRequest(((HTTPRequest) entity).getMethod(), ((HTTPRequest) entity).getTarget(), new PlainMimeEmptyPart(null, entity.getContent().getHeaders()));

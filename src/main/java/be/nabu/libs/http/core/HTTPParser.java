@@ -61,6 +61,8 @@ public class HTTPParser {
 		double version = new Double(request.substring(protocolIndex).replaceFirst(protocol + "/", "").trim());
 
 		MimeParser parser = new MimeParser();
+		// do NOT cleanup for blocking I/O, it may hang forever
+		parser.setCleanupWhitespaceBetweenBoundaries(!isBlocking);
 		// if the IO is blocking, we need to know the content length
 		// otherwise we might end up with a blocking read due to unknown lengths
 		parser.setRequireKnownContentLength(isBlocking);
@@ -116,6 +118,8 @@ public class HTTPParser {
 			response = new DefaultHTTPResponse(protocol, null, code, message, null, version);
 		else {
 			MimeParser parser = new MimeParser();
+			// do NOT cleanup for blocking I/O, it may hang forever
+			parser.setCleanupWhitespaceBetweenBoundaries(!isBlocking);
 			parser.setRequireKnownContentLength(isBlocking);
 			// for responses this is allowed
 			parser.setAllowNoMessageSizeForClosedConnections(true);

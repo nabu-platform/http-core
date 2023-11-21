@@ -40,5 +40,16 @@
 			<groupId>be.nabu.libs.events</groupId>
 			<artifactId>events-api</artifactId>
 		</dependency>
+		
+		<dependency>
+			<groupId>be.nabu.libs.resources</groupId>
+			<artifactId>resources-classpath</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>be.nabu.libs.resources</groupId>
+			<artifactId>resources-memory</artifactId>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
 </project>
