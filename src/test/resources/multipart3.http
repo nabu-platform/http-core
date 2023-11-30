@@ -1,0 +1,19 @@
+HTTP/1.1 200 OK
+Date: Thu, 30 Nov 2023 15:56:05 GMT
+Keep-Alive: timeout=6, max=100
+Connection: Keep-Alive
+Transfer-Encoding: chunked
+Content-Type: multipart/related; boundary="MIMEBoundary_8547a9f41f933264fea4b9626991aa7c17c2c0990ebd5be4"; type="application/xop+xml";start="<0.9547a9f41f933264fea4b9626991aa7c17c2c0990ebd5be4@apache.org>"; start-info="text/xml"
+Content-Language: en-US
+
+319
+--MIMEBoundary_8547a9f41f933264fea4b9626991aa7c17c2c0990ebd5be4
+Content-Type: application/xop+xml; charset=UTF-8; type="text/xml"
+Content-Transfer-Encoding: binary
+Content-ID:<0.9547a9f41f933264fea4b9626991aa7c17c2c0990ebd5be4@apache.org>
+
+<?xml version="1.0" encoding="UTF-8"?><soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"><soapenv:Body><a:createMnemonicResponse xmlns:a="http://service.colruytgroup.com/colruytgroup/finance/core/financialrelationregsvc/v1/" xmlns:b="http://www.colruytgroup.com/schema/commons/service"><finrelId>2161420</finrelId><mnemonicSource>DAEN</mnemonicSource><mnemonicKey>0328579E9TEEET</mnemonicKey></a:createMnemonicResponse></soapenv:Body></soapenv:Envelope>
+--MIMEBoundary_8547a9f41f933264fea4b9626991aa7c17c2c0990ebd5be4--
+
+0
+

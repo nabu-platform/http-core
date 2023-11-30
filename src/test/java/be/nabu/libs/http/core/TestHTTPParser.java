@@ -12,6 +12,7 @@ import be.nabu.libs.resources.api.ReadableResource;
 import be.nabu.utils.io.IOUtils;
 import be.nabu.utils.io.api.ByteBuffer;
 import be.nabu.utils.io.api.ReadableContainer;
+import be.nabu.utils.mime.api.MultiPart;
 import be.nabu.utils.mime.api.Part;
 import junit.framework.TestCase;
 
@@ -22,11 +23,14 @@ public class TestHTTPParser extends TestCase {
 	}
 	
 	public void testParseMultipart() throws URISyntaxException, IOException, ParseException {
-		URI uri = new URI("classpath:/multipart2.http");
+		URI uri = new URI("classpath:/multipart3.http");
 		HTTPParser parser = new HTTPParser(new DefaultDynamicResourceProvider(), true);
 		HTTPResponse parseResponse = parser.parseResponse(getResource(uri).getReadable());
-		((MultiPart) parseResponse.getContent());
-		System.out.println("response is: " + parseResponse.getContent());
+//		System.out.println("parsed: " + parseResponse);
+		MultiPart multipart = ((MultiPart) parseResponse.getContent());
+		//System.out.println("response is: " + parseResponse.getContent());
+		String content = toString(multipart.getChild("part0"));
+		System.out.println(content);
 	}
 	
 	public static String toString(Part part) throws IOException {
