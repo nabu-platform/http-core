@@ -26,11 +26,11 @@ public class TestHTTPParser extends TestCase {
 		URI uri = new URI("classpath:/multipart3.http");
 		HTTPParser parser = new HTTPParser(new DefaultDynamicResourceProvider(), true);
 		HTTPResponse parseResponse = parser.parseResponse(getResource(uri).getReadable());
-//		System.out.println("parsed: " + parseResponse);
+		System.out.println("parsed: " + parseResponse);
 		MultiPart multipart = ((MultiPart) parseResponse.getContent());
 		//System.out.println("response is: " + parseResponse.getContent());
 		String content = toString(multipart.getChild("part0"));
-		System.out.println(content);
+//		System.out.println(content);
 	}
 	
 	public static String toString(Part part) throws IOException {
