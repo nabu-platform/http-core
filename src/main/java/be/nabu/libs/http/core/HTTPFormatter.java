@@ -1,6 +1,8 @@
 package be.nabu.libs.http.core;
 
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 
 import be.nabu.libs.http.api.HTTPRequest;
 import be.nabu.libs.http.api.HTTPResponse;
@@ -36,8 +38,14 @@ public class HTTPFormatter {
 	}
 	
 	private void formatRequestLine(HTTPRequest request, WritableContainer<ByteBuffer> output) throws IOException {
-		String firstLine = request.getMethod() + " " + URIUtils.encodeURI(request.getTarget(), false) + " " + request.getProtocol() + "/" + request.getVersion() + "\r\n";
-		output.write(IOUtils.wrap(firstLine.getBytes("ASCII"), true));
+		try {
+			String firstLine = request.getMethod() + " " + new URI(URIUtils.encodeURI(request.getTarget(), false)).toASCIIString() + " " + request.getProtocol() + "/" + request.getVersion() + "\r\n";
+			//		String firstLine = request.getMethod() + " " + URIUtils.encodeURI(request.getTarget(), false) + " " + request.getProtocol() + "/" + request.getVersion() + "\r\n";
+			output.write(IOUtils.wrap(firstLine.getBytes("ASCII"), true));
+		}
+		catch (URISyntaxException e) {
+			throw new IOException(e);
+		}
 	}
 	
 	public void formatRequestHeaders(HTTPRequest request, WritableContainer<ByteBuffer> output) throws IOException, FormatException {
