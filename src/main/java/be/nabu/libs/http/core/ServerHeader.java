@@ -36,6 +36,10 @@ public enum ServerHeader implements CustomHeader {
 	REQUEST_RECEIVED("X-Request-Received", true), // set to true because it is injected by the parser _before_ it is processed and such headers are removed. the parser makes sure we have no user values here
 	// possible values: ssr (stands for server side rendering)
 	REQUEST_TYPE("X-Request-Type", false),
+	// correlation id is always local, conversation id can be global
+	CORRELATION_ID("X-Correlation-Id", false),
+	// set to true because it can be injected from the outside
+	CONVERSATION_ID("X-Conversation-Id", true),
 	// the proxy may have its own additional path to expose the application
 	PROXY_PATH("X-Proxy-Path", false);
 	
@@ -54,6 +58,8 @@ public enum ServerHeader implements CustomHeader {
 	public static final String NAME_REQUEST_RECEIVED = "X-Request-Received";
 	public static final String NAME_REQUEST_TYPE = "X-Request-Type";
 	public static final String NAME_PROXY_PATH = "X-Proxy-Path";
+	public static final String NAME_CORRELATION_ID = "X-Correlation-Id";
+	public static final String NAME_CONVERSATION_ID = "X-Conversation-Id";
 	
 	private String name;
 	private boolean isUserValueAllowed;
