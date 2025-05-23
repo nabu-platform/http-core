@@ -31,6 +31,11 @@ import be.nabu.utils.io.api.ByteBuffer;
 import be.nabu.utils.io.api.ReadableContainer;
 import be.nabu.utils.mime.api.MultiPart;
 import be.nabu.utils.mime.api.Part;
+import be.nabu.utils.mime.impl.FormatException;
+import be.nabu.utils.mime.impl.MimeHeader;
+import be.nabu.utils.mime.impl.PlainMimeContentPart;
+import be.nabu.utils.mime.impl.PlainMimeMultiPart;
+import be.nabu.libs.http.api.HTTPRequest;
 import junit.framework.TestCase;
 
 public class TestHTTPParser extends TestCase {
@@ -58,5 +63,19 @@ public class TestHTTPParser extends TestCase {
 		finally {
 			input.close();
 		}
+	}
+	
+	public void testFormatMultipartWithoutBoundary() throws IOException, FormatException {
+		PlainMimeMultiPart multipart = new PlainMimeMultiPart(null, new MimeHeader("Content-Type", "multipart/form-data"));
+		PlainMimeContentPart content = new PlainMimeContentPart(multipart, IOUtils.wrap("test".getBytes(), true), new MimeHeader("Content-Type", "text/plain"));
+		multipart.addChild(content);
+		HTTPRequest request = new DefaultHTTPRequest("POST", "http://localhost/test", multipart);
+		HTTPFormatter formatter = new HTTPFormatter(false);
+		ByteBuffer output = IOUtils.newByteBuffer();
+		formatter.formatRequest(request, output);
+//		formatter.formatRequestHeaders(request, output);
+//		formatter.formatRequestContent(request, output);
+		String formatted = new String(IOUtils.toBytes(output), "UTF-8");
+		System.out.println(formatted);
 	}
 }
